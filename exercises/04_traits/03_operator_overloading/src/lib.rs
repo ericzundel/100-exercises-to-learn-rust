@@ -6,9 +6,13 @@ struct Ticket {
     status: String,
 }
 
-// TODO: Implement the `PartialEq` trait for `Ticket`.
-
-impl PartialEq for Ticket {}
+impl PartialEq for Ticket {
+  fn eq(&self, other: &Ticket) -> bool {
+    return &self.title == &other.title
+    	   && &self.description == &other.description
+	   && &self.status == &other.status
+  }
+}
 
 #[cfg(test)]
 mod tests {
@@ -47,6 +51,7 @@ mod tests {
             status: status.to_string(),
         };
         assert!(ticket1 != ticket2);
+	assert!(ticket1 != ticket2);
     }
 
     #[test]

@@ -1,4 +1,6 @@
 mod helpers {
+    use crate::Ticket;
+    
     // TODO: Make this code compile, either by adding a `use` statement or by using
     //  the appropriate path to refer to the `Ticket` struct.
 
@@ -14,7 +16,7 @@ struct Ticket {
 }
 
 impl Ticket {
-    fn new(title: String, description: String, status: String) -> Ticket {
+    pub fn new(title: String, description: String, status: String) -> Ticket {
         if title.is_empty() {
             panic!("Title cannot be empty");
         }

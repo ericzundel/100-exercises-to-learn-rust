@@ -9,34 +9,39 @@ pub struct Ticket {
     status: String,
 }
 
-impl Ticket {
-    pub fn new(title: String, description: String, status: String) -> Ticket {
+    fn validate_title(title: String) -> String {
         if title.is_empty() {
-            panic!("Title cannot be empty");
+                panic!("Title cannot be empty");
         }
         if title.len() > 50 {
             panic!("Title cannot be longer than 50 bytes");
         }
+	title 
+    }
+
+    fn validate_description(description: String) -> String {
         if description.is_empty() {
             panic!("Description cannot be empty");
         }
         if description.len() > 500 {
             panic!("Description cannot be longer than 500 bytes");
         }
+	description
+    }
+
+   fn validate_status(status: String) -> String {
         if status != "To-Do" && status != "In Progress" && status != "Done" {
             panic!("Only `To-Do`, `In Progress`, and `Done` statuses are allowed");
         }
+	status
+   }
+    
 
-        Ticket {
-            title,
-            description,
-            status,
-        }
-    }
-
+impl Ticket {
     pub fn title(&self) -> &String {
         &self.title
     }
+    
 
     pub fn description(&self) -> &String {
         &self.description
@@ -44,6 +49,26 @@ impl Ticket {
 
     pub fn status(&self) -> &String {
         &self.status
+    }
+
+   pub fn set_title(&mut self, value: String) {
+     self.title = validate_title(value);
+   }
+
+   pub fn set_description(&mut self, value: String) {
+     self.description = validate_description(value);
+   }
+
+   pub fn set_status(&mut self, value: String) {
+     self.status = validate_status(value);
+   }
+
+   pub fn new(title: String, description: String, status: String) -> Ticket {
+        Ticket {
+            title: validate_title(title),
+            description: validate_description(description),
+            status: validate_status(status),
+        }
     }
 }
 

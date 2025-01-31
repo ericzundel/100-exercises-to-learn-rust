@@ -2,19 +2,47 @@
 //  When implementing `Display`, you may want to use the `write!` macro from Rust's standard library.
 //  The docs for the `std::fmt` module are a good place to start and look for examples:
 //  https://doc.rust-lang.org/std/fmt/index.html#write
+use std::error::Error;
+use std::fmt::Display;
+use std::fmt::Formatter;
+use std::fmt;
 
+#[derive (Debug)]
 enum TicketNewError {
     TitleError(String),
     DescriptionError(String),
 }
+
+impl Display for TicketNewError {
+    fn fmt(&self, f: &mut Formatter<'_> ) -> fmt::Result {
+	match self {
+     	    TicketNewError::TitleError(message) =>  write!(f, "{}", message),
+	    TicketNewError::DescriptionError(message) =>  write!(f, "{}", message),
+	}
+    }
+}
+
+impl Error for TicketNewError{}
 
 // TODO: `easy_ticket` should panic when the title is invalid, using the error message
 //   stored inside the relevant variant of the `TicketNewError` enum.
 //   When the description is invalid, instead, it should use a default description:
 //   "Description not provided".
 fn easy_ticket(title: String, description: String, status: Status) -> Ticket {
-    todo!()
+
+    let title2 = title.clone();
+    let status2 = status.clone();
+    let result = Ticket::new(title,
+	                   description,
+	                   status);
+    match result {
+        Ok(t) => return t,
+        Err(TicketNewError::DescriptionError(_message)) => return Ticket::new(title2,
+       "Description not provided".to_string(), status2).unwrap(),
+	Err(TicketNewError::TitleError(message)) => panic!("{}", message),
+    }
 }
+
 
 #[derive(Debug, PartialEq, Clone)]
 struct Ticket {
