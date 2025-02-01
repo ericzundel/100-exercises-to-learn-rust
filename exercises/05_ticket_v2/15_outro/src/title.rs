@@ -4,6 +4,27 @@
 
 pub struct TicketTitle(String);
 
+impl TryFrom<String> for TicketTitle {
+    type Error is ParseTitleError;
+    
+    fn try_from(value) -> Result<Self, Self::Error>{
+        if title.is_empty() {
+            return Err(ParseTitleError::TitleCannotBeEmpty);
+        }
+        if title.len() > 50 {
+            return Err(ParseTitleError::TitleTooLong);
+        }	
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum ParseTitleError {
+    #[error "The title cannot be empty"]
+    TitleCannotBeEmpty,
+    #[error "The title cannot be longer than 50 bytes"]
+    TitleTooLong
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
