@@ -8,12 +8,18 @@ enum Status {
     ToDo,
     InProgress,
     Done,
-    Error,
 }
 
+#[derive(Debug, thiserror::Error)]
+#[error("{invalid_status} is not a valid status")]
+struct ParseStatusError {
+    invalid_status: String,
+}
 impl TryFrom<String> for Status {
+    type Error = ParseStatusError;
+    
     fn try_from(value: String) -> Result<Self, Self::Error> {
-	if value.tolowercase() == "todo" {
+	if value.to_lowercase() == "todo" {
 	    return Ok(Status::ToDo);
 	}
 	else if value.to_lowercase() == "inprogress" {
@@ -22,29 +28,25 @@ impl TryFrom<String> for Status {
 	else if value.to_lowercase() == "done" {
 	    return Ok(Status::Done);
 	}
-	else if value.to_lowercase() == "error" {
-	    return Ok(Status::Error);	    
-	}
 
-	return Error(Self::Error)
+	return Err(ParseStatusError{ invalid_status : "Invalid status value".into()})
     }
 }
 
 impl TryFrom<&str> for Status {
+    type Error = ParseStatusError;
+    
     fn try_from(value:&str) -> Result<Self, Self::Error> {
-	if value == "ToDO" {
-	    return Ok(Status::ToDo);
+	if value.to_lowercase() == "todo" {
+	    return Ok(Status::ToDo)
 	}
-	else if value == "inproGress" {
-	    return Ok(Status::InProgress);
+	else if value.to_lowercase() == "inprogress" {
+	    return Ok(Status::InProgress)
 	}
-	else if value == "Done" {
-	    return Ok(Status::Done);
+	else if value.to_lowercase() == "done" {
+	    return Ok(Status::Done)
 	}
-	else if value == "Error" {
-	    return Ok(Status::Error);	    
-	}
-	return Error(Status::Error)
+	return Err(ParseStatusError{ invalid_status : "Invalid status value".into()})
     }
 }
 
