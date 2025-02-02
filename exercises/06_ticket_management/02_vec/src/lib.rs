@@ -10,12 +10,27 @@
 //
 // We expect `fibonacci(0)` to return `0`, `fibonacci(1)` to return `1`,
 // `fibonacci(2)` to return `1`, and so on.
+
+use std::vec::Vec;
+
 pub fn fibonacci(n: u32) -> u32 {
     // TODO: implement the `fibonacci` function
     //
     // Hint: use a `Vec` to memoize the results you have already calculated
     // so that you don't have to recalculate them several times.
-    todo!()
+    
+    // NOTE: Shortcut would be vec!(0, 1);
+    let mut known_fib :Vec<u32> = Vec::new();
+    known_fib.push(0);
+    known_fib.push(1);
+
+    let mut next : usize = 2;
+    while next <= n as usize {  // NOTE: Should have used for next in 2..=n
+        known_fib.push(known_fib[next-1] + known_fib[next-2]);
+        next = next + 1;
+    }
+    return known_fib[n as usize];
+    
 }
 
 #[cfg(test)]
