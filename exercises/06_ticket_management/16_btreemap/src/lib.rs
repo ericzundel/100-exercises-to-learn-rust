@@ -4,6 +4,7 @@
 //  Implement additional traits on `TicketId` if needed.
 
 use std::collections::BTreeMap;
+use std::collections::btree_map;
 use std::ops::{Index, IndexMut};
 use ticket_fields::{TicketDescription, TicketTitle};
 
@@ -13,7 +14,7 @@ pub struct TicketStore {
     counter: u64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Ord, PartialOrd)]
 pub struct TicketId(u64);
 
 #[derive(Clone, Debug, PartialEq)]
@@ -40,7 +41,7 @@ pub enum Status {
 impl TicketStore {
     pub fn new() -> Self {
         Self {
-            tickets: todo!(),
+            tickets: BTreeMap::new(),
             counter: 0,
         }
     }
@@ -54,19 +55,43 @@ impl TicketStore {
             description: ticket.description,
             status: Status::ToDo,
         };
-        todo!();
+        self.tickets.insert(id, ticket);
         id
     }
 
     pub fn get(&self, id: TicketId) -> Option<&Ticket> {
-        todo!()
+        self.tickets.get(&id)
     }
 
     pub fn get_mut(&mut self, id: TicketId) -> Option<&mut Ticket> {
-        todo!()
+        self.tickets.get_mut(&id)
     }
 }
 
+impl <'a>IntoIterator for &'a TicketStore {
+    type Item = &'a Ticket;
+    // Type for Solution 1
+    //type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    // Type for Soltuion 2 (from the published solution, black magic)
+    //type IntoIter = std::collections::btree_map::Values<'a, TicketId, Ticket>;
+    
+    // Solution 3
+    type IntoIter = std::vec::IntoIter<&'a Ticket>;
+    fn into_iter(self) -> Self::IntoIter {
+        // Solution 1        
+        // let tix : Vec< &Ticket> = self.tickets.iter()
+        //    .map(|x| x.1).collect();
+        //return tix.into_iter()
+        
+        // Solution 2, most efficient
+        //self.tickets.values()
+        
+        // Solution 3
+        self.tickets.iter()
+            .map(|x| x.1).collect::<Vec<_>>().into_iter()
+    }
+}
 impl Index<TicketId> for TicketStore {
     type Output = Ticket;
 
