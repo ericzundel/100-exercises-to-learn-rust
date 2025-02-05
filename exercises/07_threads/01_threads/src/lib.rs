@@ -3,6 +3,7 @@
 //  Given a vector of integers, split the vector into two halves and
 //  sum each half in a separate thread.
 
+use std::sync::mpsc;
 // Caveat: We can't test *how* the function is implemented,
 // we can only verify that it produces the correct result.
 // You _could_ pass this test by just returning `v.iter().sum()`,
@@ -15,7 +16,33 @@
 use std::thread;
 
 pub fn sum(v: Vec<i32>) -> i32 {
-    todo!()
+    let half = v.len() / 2;
+    let v1 : Vec<i32> = v[0..half].to_vec();
+    let v2: Vec<i32>  = v[half..].to_vec();
+
+    let (tx1, rx1) = mpsc::channel(); 
+    let (tx2, rx2) = mpsc::channel();
+    let handle1 =  thread::spawn(move || {
+        let mut result: i32 = 0;
+        for num in v1 {
+            result += num;
+        }
+        tx1.send(result).unwrap();
+    });
+
+    let handle2 = thread::spawn(move || {
+        let mut result: i32 = 0;
+        for num in v2 {
+            result += num;
+        }
+        tx2.send(result).unwrap();
+    });
+    let result1 = rx1.recv().unwrap();
+    let result2 = rx2.recv().unwrap();
+    handle1.join().unwrap();
+    handle2.join().unwrap();
+    
+    return result1 + result2;
 }
 
 #[cfg(test)]
