@@ -74,10 +74,12 @@ impl <'a>IntoIterator for &'a TicketStore {
     //type IntoIter = std::vec::IntoIter<Self::Item>;
 
     // Type for Soltuion 2 (from the published solution, black magic)
-    //type IntoIter = std::collections::btree_map::Values<'a, TicketId, Ticket>;
+    type IntoIter = std::collections::btree_map::Values<'a, TicketId, Ticket>;
     
     // Solution 3
-    type IntoIter = std::vec::IntoIter<&'a Ticket>;
+    //type IntoIter = std::vec::IntoIter<&'a Ticket>;
+    
+    
     fn into_iter(self) -> Self::IntoIter {
         // Solution 1        
         // let tix : Vec< &Ticket> = self.tickets.iter()
@@ -85,11 +87,12 @@ impl <'a>IntoIterator for &'a TicketStore {
         //return tix.into_iter()
         
         // Solution 2, most efficient
-        //self.tickets.values()
+        self.tickets.values()
         
         // Solution 3
-        self.tickets.iter()
-            .map(|x| x.1).collect::<Vec<_>>().into_iter()
+        //self.tickets.iter()
+        //    .map(|x| x.1).collect::<Vec<_>>().into_iter()
+        
     }
 }
 impl Index<TicketId> for TicketStore {
