@@ -2,22 +2,25 @@
 //  that increments a shared `usize` counter every time the wrapped value is dropped.
 
 use std::cell::RefCell;
+use std::cell::RefMut;
+use std::ops::{Add, Sub};
 use std::rc::Rc;
 
 pub struct DropTracker<T> {
     value: T,
-    counter: todo!(),
+    counter: Rc<RefCell<usize>>,
 }
 
 impl<T> DropTracker<T> {
-    pub fn new(value: T, counter: todo!()) -> Self {
+    pub fn new(value: T, counter: Rc<RefCell<usize>>) -> Self {
         Self { value, counter }
     }
 }
 
 impl<T> Drop for DropTracker<T> {
     fn drop(&mut self) {
-        todo!()
+        let cell : RefMut<usize> = self.counter.borrow_mut();
+        cell.sub(1);
     }
 }
 
