@@ -6,8 +6,8 @@ pub mod store;
 
 // Refer to the tests to understand the expected schema.
 pub enum Command {
-    Insert { todo!() },
-    Get { todo!() }
+    Insert { draft : crate::data::TicketDraft, ack_channel: Sender<store::TicketId> },
+    Get { id : store::TicketId, ack_channel: Sender<data::Ticket> }
 }
 
 pub fn launch() -> Sender<Command> {
@@ -21,13 +21,13 @@ pub fn server(receiver: Receiver<Command>) {
     let mut store = TicketStore::new();
     loop {
         match receiver.recv() {
-            Ok(Command::Insert {}) => {
-                todo!()
+            Ok(Command::Insert {draft, ack_channel}) => {
+                ack_channel.send(store.add_ticket(draft));
             }
-            Ok(Command::Get {
-                todo!()
-            }) => {
-                todo!()
+            Ok(Command::Get { id, ack_channel}) => {
+                let ticket_ref = store.get(id)
+                    .expect("TODO: panic message");
+                ack_channel.send(ticket_ref.clone());
             }
             Err(_) => {
                 // There are no more senders, so we can safely break
