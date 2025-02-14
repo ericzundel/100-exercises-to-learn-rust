@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::sync::mpsc::{Receiver, Sender};
 use crate::store::TicketStore;
 
@@ -7,7 +8,7 @@ pub mod store;
 // Refer to the tests to understand the expected schema.
 pub enum Command {
     Insert { draft : crate::data::TicketDraft, ack_channel: Sender<store::TicketId> },
-    Get { id : store::TicketId, ack_channel: Sender<data::Ticket> }
+    Get { id : store::TicketId, ack_channel: Sender<Option<data::Ticket>> }
 }
 
 pub fn launch() -> Sender<Command> {
@@ -22,12 +23,12 @@ pub fn server(receiver: Receiver<Command>) {
     loop {
         match receiver.recv() {
             Ok(Command::Insert {draft, ack_channel}) => {
-                ack_channel.send(store.add_ticket(draft));
+                ack_channel.send(store.add_ticket(draft)).expect("TODO: panic message");
             }
             Ok(Command::Get { id, ack_channel}) => {
                 let ticket_ref = store.get(id)
                     .expect("TODO: panic message");
-                ack_channel.send(ticket_ref.clone());
+                ack_channel.send(Some(ticket_ref.clone()));
             }
             Err(_) => {
                 // There are no more senders, so we can safely break
