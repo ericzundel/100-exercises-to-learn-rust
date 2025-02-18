@@ -2,6 +2,8 @@
 //  accept connections on both of them concurrently, and always reply to clients by sending
 //  the `Display` representation of the `reply` argument as a response.
 use std::fmt::Display;
+use std::ops::Deref;
+use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpListener;
 
@@ -10,7 +12,26 @@ where
     // `T` cannot be cloned. How do you share it between the two server tasks?
     T: Display + Send + Sync + 'static,
 {
-    todo!()
+    //let reply_str: String = format!("{}", reply);
+    let reply_arc = Arc::new(reply);
+    tokio::spawn(accept_stream(first, Arc::clone(&reply_arc)));
+    tokio::spawn(accept_stream(second, reply_arc));
+}
+
+pub async fn accept_stream<T>(listener: TcpListener, reply : Arc<T> )
+where
+// `T` cannot be cloned. How do you share it between the two server tasks?
+T: Display + Send + Sync + 'static,
+{
+    loop {
+        let display_string = format!("{}", reply);
+        let (mut socket, _) = listener.accept().await.unwrap();
+        let handle = tokio::spawn(async move {
+            let (mut reader, mut writer) = socket.split();
+            let _ = writer.write(display_string.as_bytes()).await;
+        });
+        handle.await;
+    }
 }
 
 #[cfg(test)]
