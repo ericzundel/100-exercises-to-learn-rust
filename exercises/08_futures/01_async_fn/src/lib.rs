@@ -31,7 +31,7 @@ pub async fn echo(listener: TcpListener) -> Result<(), anyhow::Error> {
                 }
             }
             Err(val) => {
-                //return Err(Error::from(val))
+                // do nothing!  return Err(Error::from(val))
             }
         }
     }
