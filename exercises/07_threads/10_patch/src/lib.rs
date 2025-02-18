@@ -35,8 +35,15 @@ impl TicketStoreClient {
         Ok(response_receiver.recv().unwrap())
     }
 
-    pub fn update(&self, ticket_patch: TicketPatch) -> Result<(), OverloadedError> {
-        todo!();
+    pub fn update(&self, ticket_patch: TicketPatch) -> Result<Option<Ticket>, OverloadedError> {
+        let (response_sender, response_receiver) = sync_channel(1);
+        self.sender
+            .try_send(Command::Update {
+                patch: ticket_patch,
+                response_channel: response_sender,
+            })
+            .map_err(|_| OverloadedError)?;
+        Ok(response_receiver.recv().unwrap())   
     }
 }
 
@@ -61,7 +68,7 @@ enum Command {
     },
     Update {
         patch: TicketPatch,
-        response_channel: SyncSender<()>,
+        response_channel: SyncSender<Option<Ticket>>,
     },
 }
 
@@ -74,14 +81,16 @@ pub fn server(receiver: Receiver<Command>) {
                 response_channel,
             }) => {
                 let id = store.add_ticket(draft);
-                let _ = response_channel.send(id);
+                let _ = response_channel.try_send(id)
+                    .map(|_| OverloadedError);
             }
             Ok(Command::Get {
                 id,
                 response_channel,
             }) => {
                 let ticket = store.get(id);
-                let _ = response_channel.send(ticket.cloned());
+                let _ = response_channel.try_send(ticket.cloned())
+                    .map_err(|_| OverloadedError);
             }
             Ok(Command::Update {
                 patch,
@@ -92,19 +101,25 @@ pub fn server(receiver: Receiver<Command>) {
                         Some(description) => {
                             ticket.description = description;
                         },
-                        (_) => {},
+                        _ => {},
+                    }
+                    match patch.status {
+                        Some(status) => {
+                            ticket.status = status;
+                        },
+                        _ => {},              
                     }
                     match patch.title {
                         Some(title) => {
                         ticket.title = title;
                         },
-                        (_) => {},
+                        _ => {},
                     }
-                    let _ = response_channel.try_send(Ok(ticket.clone))
-                        .map_err(|_| OverloadedError)?;
+                    let _ = response_channel.try_send(Some(ticket.clone()))
+                        .map_err(|_| OverloadedError);
                 }
                 None => {
-                   let _ = response_channel.send(());
+                   let _ = response_channel.try_send(None);
                 }
             },
             Err(_) => {
